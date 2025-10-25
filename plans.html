@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plans - OrbitOutreach</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="socialorbitlogo.png" sizes="32x32">
+    <style>
+        /* Modal/Popup Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+            background: none;
+            border: none;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            font-size: 32px;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        .selected-plan {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e90ff, #0066cc);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            font-size: 16px;
+            color: #666;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1e90ff;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-submit-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #1e90ff, #0066cc);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        .modal-submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 144, 255, 0.4);
+        }
+
+        .modal-submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .success-message h3 {
+            font-size: 28px;
+            color: #1e3a5f;
+            margin-bottom: 15px;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        .success-message p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="orbit-outreach.png" alt="Orbit Outreach" class="logo-img">
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="#">Plans</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+    </header>
+
+    <!-- Pricing Hero -->
+    <section class="pricing-hero">
+        <h1 class="pricing-hero-title">Choose Your <span class="highlight-inline">Orbit</span></h1>
+        <p class="pricing-hero-subtitle">Flexible plans designed to grow with your brand</p>
+    </section>
+
+    <!-- Pricing Cards -->
+    <section class="pricing-section">
+        <div class="pricing-container">
+            
+            <!-- Launch Plan -->
+            <div class="pricing-card">
+                <div class="card-header">
+                    <h3>Launch Plan</h3>
+                    <p class="plan-subtitle">For individuals & small creators</p>
+                </div>
+                <div class="price-display">
+                    <div class="main-price">
+                        <span class="currency">$</span>
+                        <span class="amount">9</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price-text">or $92/year (save 15%)</div>
+                </div>
+                <ul class="features-list">
+                    <li>✓ 1 Social Media Account</li>
+                    <li>✓ 10 Scheduled Posts/Month</li>
+                    <li>✓ Basic Analytics Dashboard</li>
+                    <li>✓ Content Calendar</li>
+                    <li>✓ Email Support</li>
+                </ul>
+                <button class="plan-button" onclick="openModal('Launch')">Start Free</button>
+            </div>
+
+            <!-- Orbit Plan (Most Popular) -->
+            <div class="pricing-card featured">
+                <div class="popular-badge">⭐ Most Popular</div>
+                <div class="card-header">
+                    <h3>Orbit Plan</h3>
+                    <p class="plan-subtitle">For small businesses & growing brands</p>
+                </div>
+                <div class="price-display">
+                    <div class="main-price">
+                        <span class="currency">$</span>
+                        <span class="amount">29</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price-text">or $295/year (save 15%)</div>
+                </div>
+                <ul class="features-list">
+                    <li>✓ 3 Social Media Accounts</li>
+                    <li>✓ 30 Scheduled Posts/Month</li>
+                    <li>✓ Advanced Analytics & Insights</li>
+                    <li>✓ Audience Engagement Tools</li>
+                    <li>✓ Hashtag Research</li>
+                    <li>✓ Priority Support</li>
+                </ul>
+                <button class="plan-button featured-button" onclick="openModal('Orbit')">Try Free for 7 Days</button>
+            </div>
+
+            <!-- Galaxy Plan -->
+            <div class="pricing-card">
+                <div class="card-header">
+                    <h3>Galaxy Plan</h3>
+                    <p class="plan-subtitle">For established brands</p>
+                </div>
+                <div class="price-display">
+                    <div class="main-price">
+                        <span class="currency">$</span>
+                        <span class="amount">59</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price-text">or $600/year (save 15%)</div>
+                </div>
+                <ul class="features-list">
+                    <li>✓ Unlimited Social Media Accounts</li>
+                    <li>✓ Unlimited Scheduled Posts</li>
+                    <li>✓ Advanced Reporting & White-Label</li>
+                    <li>✓ Custom Branding Tools</li>
+                    <li>✓ Competitor Analysis</li>
+                    <li>✓ Dedicated Account Manager</li>
+                    <li>✓ 24/7 Premium Support</li>
+                </ul>
+                <button class="plan-button" onclick="openModal('Galaxy')">Upgrade Now</button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer Info -->
+    <section class="pricing-footer">
+        <h2>All plans include</h2>
+        <div class="included-features">
+            <div class="included-item">📊 Real-time analytics</div>
+            <div class="included-item">🎨 Content library access</div>
+            <div class="included-item">📱 Mobile app access</div>
+            <div class="included-item">🔒 Secure & encrypted</div>
+        </div>
+    </section>
+
+    <!-- Modal Popup -->
+    <div class="modal-overlay" id="signupModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            
+            <!-- Form View -->
+            <div id="formView">
+                <div class="modal-header">
+                    <div class="selected-plan" id="selectedPlanBadge"></div>
+                    <h2>Get Started Today</h2>
+                    <p class="modal-subtitle">Fill out the form below and we'll be in touch within 24 hours</p>
+                </div>
+
+                <form class="signup-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdJuOCrS2eNKI-J27KsgHpSohWMzPS2KKKIOjNgZpcAuH1pYg/formResponse" method="POST" target="hidden_iframe_plans" id="signupForm">
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" name="entry.605200494" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="entry.1130362712" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plan">Selected Plan *</label>
+                        <select id="plan" name="entry.917060254" required>
+                            <option value="">Choose a plan</option>
+                            <option value="Launch">Launch Plan - $9/month</option>
+                            <option value="Orbit">Orbit Plan - $29/month</option>
+                            <option value="Galaxy">Galaxy Plan - $59/month</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="billing">Billing Preference *</label>
+                        <select id="billing" name="entry.2036064120" required>
+                            <option value="">Select billing cycle</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Yearly">Yearly (Save 15%)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="questions">Questions or Special Requests</label>
+                        <textarea id="questions" name="entry.427503919" placeholder="Optional"></textarea>
+                    </div>
+
+                    <button type="submit" class="modal-submit-button" id="submitBtn">Submit Request</button>
+                </form>
+                
+                <!-- Hidden iframe to prevent redirect -->
+                <iframe name="hidden_iframe_plans" id="hidden_iframe_plans" style="display:none;"></iframe>
+            </div>
+
+            <!-- Success View -->
+            <div class="success-message" id="successView">
+                <div class="success-icon">🎉</div>
+                <h3>Request Received!</h3>
+                <p>Thank you for choosing SocialOrbit! We'll review your request and contact you within 24 hours to complete your setup.</p>
+                <p style="margin-top: 20px; font-weight: bold;">Check your email for confirmation.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(planName) {
+            // Set the plan badge
+            document.getElementById('selectedPlanBadge').textContent = planName + ' Plan';
+            
+            // Pre-select the plan in the dropdown
+            document.getElementById('plan').value = planName;
+            
+            // Show modal
+            document.getElementById('signupModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('signupModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            
+            // Reset form after closing
+            setTimeout(() => {
+                document.getElementById('formView').style.display = 'block';
+                document.getElementById('successView').classList.remove('active');
+                document.getElementById('signupForm').reset();
+                document.getElementById('submitBtn').textContent = 'Submit Request';
+                document.getElementById('submitBtn').disabled = false;
+            }, 300);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('signupModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('signupForm').addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+
+            // Show success message after delay
+            setTimeout(() => {
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('successView').classList.add('active');
+                
+                // Auto-close after 4 seconds
+                setTimeout(() => {
+                    closeModal();
+                }, 4000);
+            }, 1500);
+        });
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plans - SocialOrbit</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="socialorbit-Picsart-BackgroundRemover.jpeg" alt="SocialOrbit" class="logo-img">
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="#">Plans</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+    </header>
+    -->
+    
+    <!-- Pricing Hero -->
+    <!-- <section class="pricing-hero">
+        <h1 class="pricing-hero-title">Choose Your <span class="highlight-inline">Orbit</span></h1>
+        <p class="pricing-hero-subtitle">Flexible plans designed to grow with your brand</p>
+    </section> -->
+<!--
+    Pricing Cards 
+    <section class="pricing-section">
+        <div class="pricing-container"> 
+            
+             Launch Plan
+            <div class="pricing-card">
+                <div class="card-header">
+                    <h3>Launch Plan</h3>
+                    <p class="plan-subtitle">For individuals & small creators</p>
+                </div>
+                <div class="price-display">
+                    <div class="main-price">
+                        <span class="currency">$</span>
+                        <span class="amount">9</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price-text">or $92/year (save 15%)</div>
+                </div>
+                <ul class="features-list">
+                    <li>✓ 1 Social Media Account</li>
+                    <li>✓ 10 Scheduled Posts/Month</li>
+                    <li>✓ Basic Analytics Dashboard</li>
+                    <li>✓ Content Calendar</li>
+                    <li>✓ Email Support</li>
+                </ul>
+                <button class="plan-button">Start Free</button>
+            </div>
+
+             Orbit Plan (Most Popular) 
+            <div class="pricing-card featured">
+                <div class="popular-badge">⭐ Most Popular</div>
+                <div class="card-header">
+                    <h3>Orbit Plan</h3>
+                    <p class="plan-subtitle">For small businesses & growing brands</p>
+                </div>
+                <div class="price-display">
+                    <div class="main-price">
+                        <span class="currency">$</span>
+                        <span class="amount">29</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price-text">or $295/year (save 15%)</div>
+                </div>
+                <ul class="features-list">
+                    <li>✓ 3 Social Media Accounts</li>
+                    <li>✓ 30 Scheduled Posts/Month</li>
+                    <li>✓ Advanced Analytics & Insights</li>
+                    <li>✓ Audience Engagement Tools</li>
+                    <li>✓ Hashtag Research</li>
+                    <li>✓ Priority Support</li>
+                </ul>
+                <button class="plan-button featured-button">Try Free for 7 Days</button>
+            </div>
+
+             Galaxy Plan 
+            <div class="pricing-card">
+                <div class="card-header">
+                    <h3>Galaxy Plan</h3>
+                    <p class="plan-subtitle">For established brands</p>
+                </div>
+                <div class="price-display">
+                    <div class="main-price">
+                        <span class="currency">$</span>
+                        <span class="amount">59</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <div class="yearly-price-text">or $600/year (save 15%)</div>
+                </div>
+                <ul class="features-list">
+                    <li>✓ Unlimited Social Media Accounts</li>
+                    <li>✓ Unlimited Scheduled Posts</li>
+                    <li>✓ Advanced Reporting & White-Label</li>
+                    <li>✓ Custom Branding Tools</li>
+                    <li>✓ Competitor Analysis</li>
+                    <li>✓ Dedicated Account Manager</li>
+                    <li>✓ 24/7 Premium Support</li>
+                </ul>
+                <button class="plan-button">Upgrade Now</button>
+            </div>
+
+        </div>
+    </section>
+
+    Footer Info
+    <section class="pricing-footer">
+        <h2>All plans include</h2>
+        <div class="included-features">
+            <div class="included-item">📊 Real-time analytics</div>
+            <div class="included-item">🎨 Content library access</div>
+            <div class="included-item">📱 Mobile app access</div>
+            <div class="included-item">🔒 Secure & encrypted</div>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html> -->
